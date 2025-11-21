@@ -383,6 +383,7 @@
       },
     };
 
+    // --- อัปเดตเฉพาะ text คงที่ (หัวข้อ, label, ปุ่ม, footer) ---
     function applyLanguageStatic() {
       const t = TEXTS[currentLang];
       document.documentElement.lang = currentLang === "th" ? "th" : "en";
@@ -394,7 +395,6 @@
       document.getElementById("chartTitle").textContent = t.chartTitle;
       document.getElementById("flowTitle").textContent = t.flowTitle;
       document.getElementById("flowBadge").textContent = t.flowBadge;
-      document.getElementById("flowChipText").textContent = t.flowChipLoading;
       document.getElementById("suggestionTitle").textContent = t.suggestionTitle;
       document.getElementById("suggestionNote").textContent = t.suggestionNote;
       document.getElementById("randomBtn").textContent = t.randomBtn;
@@ -669,23 +669,27 @@
 
       renderChart(marketData);
       updateFlowPanel();
+
       document.getElementById("dataSourceBadge").textContent =
         currentLang === "th"
           ? "Demo Data • จำลองสภาพตลาด"
           : "Demo Data • Randomized snapshot";
     }
 
+    // ----- อัปเดตทุกอย่างตามภาษา -----
+    function updateAll() {
+      applyLanguageStatic();   // หัวข้อ ป้าย ปุ่ม
+      renderChart(marketData); // กราฟ + แท็บด้านล่างกราฟ
+      updateFlowPanel();       // ข้อความในกล่อง Flow + Smart Focus
+    }
+
     // ----- INIT -----
     function initDashboard() {
-      applyLanguageStatic();
-      renderChart(marketData);
-      updateFlowPanel();
+      updateAll();
 
       document.getElementById("langToggleBtn").addEventListener("click", () => {
         currentLang = currentLang === "th" ? "en" : "th";
-        applyLanguageStatic();
-        renderChart(marketData);
-        updateFlowPanel();
+        updateAll();
       });
 
       document.getElementById("randomBtn").addEventListener("click", () => {
