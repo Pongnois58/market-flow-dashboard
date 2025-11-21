@@ -20,6 +20,7 @@
       padding: 24px;
     }
     .container { max-width: 1200px; width: 100%; }
+
     .header {
       margin-bottom: 24px;
       display: flex;
@@ -30,23 +31,7 @@
     }
     .title-block { max-width: 800px; }
     .title { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
-    .subtitle { font-size: 14px; color: #9ca3af; }
-    .lang-toggle {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .lang-label { font-size: 11px; color: #9ca3af; }
-    .lang-btn {
-      border: 1px solid rgba(75, 85, 99, 1);
-      border-radius: 999px;
-      padding: 6px 12px;
-      font-size: 11px;
-      background: rgba(15, 23, 42, 1);
-      color: #e5e7eb;
-      cursor: pointer;
-    }
-    .lang-btn:hover { background: rgba(15, 23, 42, 0.75); }
+    .subtitle { font-size: 14px; color: #9ca3af; white-space: pre-line; }
 
     .grid {
       display: grid;
@@ -78,6 +63,7 @@
       white-space: nowrap;
     }
     .chart-container { height: 260px; position: relative; }
+
     .legend {
       display: flex;
       flex-wrap: wrap;
@@ -186,6 +172,7 @@
       font-size: 11px;
       color: #6b7280;
       text-align: right;
+      white-space: pre-line;
     }
 
     @media (max-width: 900px) {
@@ -201,13 +188,9 @@
       <div class="title-block">
         <div class="title" id="titleText">Trader Market Flow Radar</div>
         <div class="subtitle" id="subtitleText">
-          Prototype website สำหรับเทรดเดอร์ — ดูการไหลของเงินระหว่าง DXY, ES, NQ, GC, BTC, ETH
-          เพื่อช่วยประเมินว่า วันนี้ตลาดอยู่โหมด Risk-On หรือ Risk-Off
+Prototype website for traders — track money flow across DXY, ES, NQ, GC, BTC, ETH
+to estimate whether the market is in Risk-On, Risk-Off, or Stay Out mode.
         </div>
-      </div>
-      <div class="lang-toggle">
-        <span class="lang-label" id="langLabel">Language</span>
-        <button class="lang-btn" id="langToggleBtn">ไทย / EN</button>
       </div>
     </header>
 
@@ -240,168 +223,78 @@
         <section class="card">
           <div class="card-header">
             <div class="card-title" id="flowTitle">Risk-On / Risk-Off Flow Score</div>
-            <div class="badge" id="flowBadge">0–100 • Education Only</div>
+            <div class="badge" id="flowBadge">0–100 • Educational Only</div>
           </div>
 
           <div id="flowScore" class="flow-score">–</div>
           <div id="flowLabel" class="flow-label">Loading…</div>
           <div id="flowChip" class="flow-chip">
             <span class="emoji">🕒</span>
-            <span id="flowChipText">กำลังประเมินโหมดตลาด…</span>
+            <span id="flowChipText">Evaluating current regime…</span>
           </div>
 
           <div id="flowDesc" class="flow-desc"></div>
           <ul id="flowList" class="flow-list"></ul>
 
-          <div class="suggestion-box" id="suggestionBox">
+          <div class="suggestion-box">
             <div class="suggestion-title" id="suggestionTitle">Smart Focus (DEMO Recommendation)</div>
             <div id="suggestionText">
-              ระบบจะเลือกทรัพย์สินเสี่ยงที่เด่นสุด และทรัพย์สินป้องกันความเสี่ยงที่เด่นสุด จากข้อมูลวันนี้
+              The system picks the strongest risk asset and the strongest defensive asset based on today's flows.
             </div>
             <div class="suggestion-note" id="suggestionNote">
-              * ใช้เพื่อการศึกษาเท่านั้น ไม่ใช่คำแนะนำการลงทุนจริงหรือการการันตีผลกำไร
+              * For educational purposes only. Not financial advice or a guarantee of profits.
             </div>
           </div>
 
           <div class="actions">
-            <button onclick="randomizeMarket()" id="randomBtn">🎲 Randomize Demo</button>
+            <button id="randomBtn">🎲 Randomize Demo</button>
           </div>
         </section>
       </div>
 
       <div class="footer" id="footerText">
-        Prototype for class presentation — สามารถต่อยอดให้ดึง real-time data จาก API ได้ในเวอร์ชันถัดไป
+Prototype for class presentation — can be extended to use real-time API data and live charts in future versions.
       </div>
     </main>
   </div>
 
   <script>
-    // ----- LANGUAGE STATE -----
-    let currentLang = "th"; // "th" หรือ "en"
-
-    const TEXTS = {
-      th: {
-        title: "Trader Market Flow Radar",
-        subtitle:
-          "Prototype website สำหรับเทรดเดอร์ — ดูการไหลของเงินระหว่าง DXY, ES, NQ, GC, BTC, ETH\nเพื่อช่วยประเมินว่า วันนี้ตลาดอยู่โหมด Risk-On หรือ Risk-Off และช่วงไหนควรอยู่นิ่งๆ",
-        langLabel: "ภาษา",
-        langBtn: "ไทย / EN",
-        chartTitle: "Cross-Asset % Change Snapshot",
-        flowTitle: "Risk-On / Risk-Off Flow Score",
-        flowBadge: "0–100 • เพื่อการศึกษา",
-        flowChipLoading: "กำลังประเมินโหมดตลาด…",
-        suggestionTitle: "Smart Focus (คำแนะนำ DEMO)",
-        suggestionIntro:
-          "ระบบจะเลือกทรัพย์สินเสี่ยงที่เด่นสุด และทรัพย์สินป้องกันความเสี่ยงที่เด่นสุด จากข้อมูลวันนี้",
-        suggestionNeutral:
-          "ตลาดค่อนข้างนิ่งหรือยังไม่ชัดเจน → เหมาะกับการอยู่นิ่งๆ รอดูสถานการณ์ หรือเทรดเบามือมากๆ เท่านั้น\nถ้าจะเข้า ควรเน้นจุดเข้าที่มี RR สูง และรอสัญญาณชัดจากระบบหลักของตัวเองก่อน",
-        suggestionNote:
-          "* ใช้เพื่อการศึกษาเท่านั้น ไม่ใช่คำแนะนำการลงทุนจริงหรือการการันตีผลกำไร",
-        randomBtn: "🎲 Randomize Demo",
-        footer:
-          "Prototype สำหรับการพรีเซนต์ในคลาส — สามารถต่อยอดให้ดึง real-time data จาก API ได้ในเวอร์ชันถัดไป",
-        pillVolHigh: "Vol > Avg",
-        pillVolLow: "Vol ≤ Avg",
-        labelRiskOn: "ตลาดโหมด RISK-ON – เงินไหลเข้าสินทรัพย์เสี่ยง",
-        labelNeutral: "ตลาดกลางๆ – เงินกระจายทั้งสองฝั่ง",
-        labelRiskOff: "ตลาดโหมด RISK-OFF – เงินไหลเข้าดอลลาร์/ทอง",
-        chipRiskOn: "Aggressive / Pro-Risk",
-        chipNeutral: "Neutral / Wait & See",
-        chipRiskOff: "Defensive / Hedge Mode",
-        marketModeOn: "ตลาดเอนมาทางฝั่งเสี่ยง (risk-on)",
-        marketModeMid: "ตลาดยังไม่ bias ชัดเจน (flow ยังแกว่งไปมา)",
-        marketModeOff: "ตลาดค่อนข้างเน้นป้องกันความเสี่ยง (risk-off)",
-        bullets: {
-          dxyUp: "DXY บวกแรง → ดอลลาร์แข็ง กดดันฝั่งสินทรัพย์เสี่ยง",
-          dxyDown: "DXY อ่อน → สนับสนุนฝั่ง risk-on (หุ้น / คริปโต)",
-          esNqUp: "ES/NQ บวก → เม็ดเงินไหลเข้าหุ้นสหรัฐ โดยเฉพาะฝั่ง growth/tech (NQ)",
-          esNqDown: "ES/NQ ลบ → หุ้นโดน take profit หรือเริ่ม risk-off",
-          gcUp: "ทอง (GC) บวก → ความต้องการ hedge ความเสี่ยงสูงขึ้น",
-          gcDown: "ทอง (GC) อ่อน → นักลงทุนกล้ารับความเสี่ยงมากขึ้น",
-          cryptoUp: "BTC/ETH บวกแรง → appetite ฝั่ง high beta / crypto สูง",
-          cryptoDown: "Crypto อ่อนตัว → sentiment ฝั่งคริปโตเริ่มถอย",
-          noClear:
-            "การเคลื่อนไหวยังไม่ชัดเจน → เหมาะกับการรอดู หรือเทรดสั้นตาม level intraday มากกว่ามองภาพใหญ่",
-        },
-        suggestionRiskPrefix:
-          "ถ้าตลาดเอียงไปทางฝั่งเสี่ยงและอยากเล่นเชิงรุก (Aggressive / Risk-On):",
-        suggestionDefPrefix:
-          "ถ้าอยากเน้นป้องกันความเสี่ยง (Defensive / Hedge):",
-        suggestionStayOut: "โหมด Stay Out / Low Exposure:",
+    // Single-language text config
+    const T = {
+      pillVolHigh: "Vol > Avg",
+      pillVolLow: "Vol ≤ Avg",
+      labelRiskOn: "RISK-ON regime – money flowing into risk assets",
+      labelNeutral: "Neutral regime – flows mixed on both sides",
+      labelRiskOff: "RISK-OFF regime – money rotating into USD/Gold",
+      chipRiskOn: "Aggressive / Pro-Risk",
+      chipNeutral: "Neutral / Wait & See",
+      chipRiskOff: "Defensive / Hedge Mode",
+      marketModeOn: "Market is leaning toward the risk-on side.",
+      marketModeMid: "Market has no clear bias yet (flows are mixed).",
+      marketModeOff: "Market is leaning toward risk-off / protection mode.",
+      bullets: {
+        dxyUp: "DXY up strongly → stronger USD, pressure on risk assets.",
+        dxyDown: "DXY weaker → supportive backdrop for risk-on trades.",
+        esNqUp: "ES/NQ up → money flowing into US equities, especially growth/tech via NQ.",
+        esNqDown: "ES/NQ down → equities under profit-taking or risk-off pressure.",
+        gcUp: "Gold (GC) up → higher demand for hedging and safety.",
+        gcDown: "Gold (GC) down → investors more willing to take risk.",
+        cryptoUp: "BTC/ETH strong → appetite for high beta / crypto risk is high.",
+        cryptoDown: "Crypto selling off → sentiment on high-risk assets is cooling.",
+        noClear: "Moves are not very clear → better to be patient or trade only small intraday setups.",
       },
-      en: {
-        title: "Trader Market Flow Radar",
-        subtitle:
-          "Prototype website for traders — track money flow across DXY, ES, NQ, GC, BTC, ETH\nso you can see if the market is Risk-On, Risk-Off, or a good time to stay out.",
-        langLabel: "Language",
-        langBtn: "EN / ไทย",
-        chartTitle: "Cross-Asset % Change Snapshot",
-        flowTitle: "Risk-On / Risk-Off Flow Score",
-        flowBadge: "0–100 • Educational Only",
-        flowChipLoading: "Evaluating current market regime…",
-        suggestionTitle: "Smart Focus (DEMO Recommendation)",
-        suggestionIntro:
-          "The system picks the strongest risk asset and the strongest defensive asset based on today's flows.",
-        suggestionNeutral:
-          "Market looks choppy or directionless → this is a good time to stay on the sidelines or trade very small size.\nIf you take trades, focus on high RR setups only and wait for clear signals from your main strategy.",
-        suggestionNote:
-          "* For educational purposes only. Not financial advice or a guarantee of profits.",
-        randomBtn: "🎲 Randomize Demo",
-        footer:
-          "Prototype for class presentation — can be extended to use real-time API data in future versions.",
-        pillVolHigh: "Vol > Avg",
-        pillVolLow: "Vol ≤ Avg",
-        labelRiskOn: "RISK-ON regime – money flowing into risk assets",
-        labelNeutral: "Neutral regime – flows mixed on both sides",
-        labelRiskOff: "RISK-OFF regime – money rotating into USD/Gold",
-        chipRiskOn: "Aggressive / Pro-Risk",
-        chipNeutral: "Neutral / Wait & See",
-        chipRiskOff: "Defensive / Hedge Mode",
-        marketModeOn: "Market is leaning toward the risk-on side.",
-        marketModeMid: "Market has no clear bias yet (flows are mixed).",
-        marketModeOff: "Market is leaning toward risk-off / protection mode.",
-        bullets: {
-          dxyUp: "DXY up strongly → stronger USD, pressure on risk assets.",
-          dxyDown: "DXY weaker → supportive backdrop for risk-on trades.",
-          esNqUp:
-            "ES/NQ up → money flowing into US equities, especially growth/tech via NQ.",
-          esNqDown: "ES/NQ down → equities under profit-taking or risk-off pressure.",
-          gcUp: "Gold (GC) up → higher demand for hedging and safety.",
-          gcDown: "Gold (GC) down → investors more willing to take risk.",
-          cryptoUp:
-            "BTC/ETH strong → appetite for high beta / crypto risk is high.",
-          cryptoDown:
-            "Crypto selling off → sentiment on high-risk assets is cooling.",
-          noClear:
-            "Moves are not very clear → better to be patient or trade only small intraday setups.",
-        },
-        suggestionRiskPrefix:
-          "If you want to play the Aggressive / Risk-On side, you may focus on:",
-        suggestionDefPrefix:
-          "If you want to stay Defensive / Hedge-focused, you may watch:",
-        suggestionStayOut: "Stay Out / Low Exposure Mode:",
-      },
+      suggestionIntro:
+        "The system picks the strongest risk asset and the strongest defensive asset based on today's flows.",
+      suggestionNeutral:
+        "Market looks choppy or directionless → this is a good time to stay on the sidelines or trade very small size.\nIf you take trades, focus on high RR setups only and wait for clear signals from your main strategy.",
+      suggestionRiskPrefix:
+        "If you want to play the Aggressive / Risk-On side, you may focus on:",
+      suggestionDefPrefix:
+        "If you want to stay Defensive / Hedge-focused, you may watch:",
+      suggestionStayOut: "Stay Out / Low Exposure Mode:",
     };
 
-    // --- อัปเดตเฉพาะ text คงที่ (หัวข้อ, label, ปุ่ม, footer) ---
-    function applyLanguageStatic() {
-      const t = TEXTS[currentLang];
-      document.documentElement.lang = currentLang === "th" ? "th" : "en";
-
-      document.getElementById("titleText").textContent = t.title;
-      document.getElementById("subtitleText").textContent = t.subtitle;
-      document.getElementById("langLabel").textContent = t.langLabel;
-      document.getElementById("langToggleBtn").textContent = t.langBtn;
-      document.getElementById("chartTitle").textContent = t.chartTitle;
-      document.getElementById("flowTitle").textContent = t.flowTitle;
-      document.getElementById("flowBadge").textContent = t.flowBadge;
-      document.getElementById("suggestionTitle").textContent = t.suggestionTitle;
-      document.getElementById("suggestionNote").textContent = t.suggestionNote;
-      document.getElementById("randomBtn").textContent = t.randomBtn;
-      document.getElementById("footerText").textContent = t.footer;
-    }
-
-    // ----- MARKET DATA (DEMO) -----
+    // DEMO market data
     let marketData = {
       dxy: { name: "DXY", change: 0.4, vol: 105, volAvg: 100, type: "defensive" },
       es:  { name: "ES",  change: 0.8, vol: 120, volAvg: 100, type: "risk" },
@@ -413,7 +306,7 @@
 
     let chartInstance = null;
 
-    // ----- FLOW SCORE LOGIC -----
+    // FLOW SCORE
     function computeFlowScore(data) {
       const dxy = data.dxy.change;
       const es  = data.es.change;
@@ -435,27 +328,23 @@
     }
 
     function getFlowLabel(score) {
-      const t = TEXTS[currentLang];
-      if (score >= 70) return t.labelRiskOn;
-      if (score >= 40) return t.labelNeutral;
-      return t.labelRiskOff;
+      if (score >= 70) return T.labelRiskOn;
+      if (score >= 40) return T.labelNeutral;
+      return T.labelRiskOff;
     }
 
     function getFlowChip(score) {
-      const t = TEXTS[currentLang];
-      if (score >= 70) return { emoji: "🟢", text: t.chipRiskOn };
-      if (score >= 40) return { emoji: "🟡", text: t.chipNeutral };
-      return { emoji: "🔴", text: t.chipRiskOff };
+      if (score >= 70) return { emoji: "🟢", text: T.chipRiskOn };
+      if (score >= 40) return { emoji: "🟡", text: T.chipNeutral };
+      return { emoji: "🔴", text: T.chipRiskOff };
     }
 
     function buildFlowDesc(score, data) {
-      const t = TEXTS[currentLang];
       const { dxy, es, nq, gc, btc, eth } = data;
-
       let modeText;
-      if (score >= 70) modeText = t.marketModeOn;
-      else if (score >= 40) modeText = t.marketModeMid;
-      else modeText = t.marketModeOff;
+      if (score >= 70) modeText = T.marketModeOn;
+      else if (score >= 40) modeText = T.marketModeMid;
+      else modeText = T.marketModeOff;
 
       return (
         `${modeText}\n\n` +
@@ -469,8 +358,7 @@
     }
 
     function buildFlowBullets(score, data) {
-      const t = TEXTS[currentLang];
-      const b = t.bullets;
+      const b = T.bullets;
       const { dxy, es, nq, gc, btc, eth } = data;
       const bullets = [];
 
@@ -490,7 +378,7 @@
       return bullets;
     }
 
-    // ----- SIMPLE RECOMMENDATION ENGINE (DEMO) -----
+    // RECOMMENDATION
     function buildSuggestions(data) {
       const assets = Object.values(data);
       const riskAssets = assets.filter(a => a.type === "risk");
@@ -516,7 +404,6 @@
     }
 
     function updateSuggestionBox(score) {
-      const t = TEXTS[currentLang];
       const s = buildSuggestions(marketData);
       const box = document.getElementById("suggestionText");
 
@@ -524,19 +411,19 @@
 
       if (nearNeutral) {
         box.innerHTML =
-          `<div class="suggestion-asset">${t.suggestionStayOut}</div>` +
-          `<div style="margin-top:4px;">${t.suggestionNeutral.replace(/\n/g, "<br>")}</div>`;
+          `<div class="suggestion-asset">${T.suggestionStayOut}</div>` +
+          `<div style="margin-top:4px;">${T.suggestionNeutral.replace(/\n/g, "<br>")}</div>`;
       } else {
         box.innerHTML =
-          `${t.suggestionIntro}<br><br>` +
-          `${t.suggestionRiskPrefix}<br>` +
+          `${T.suggestionIntro}<br><br>` +
+          `${T.suggestionRiskPrefix}<br>` +
           `• <span class="suggestion-asset">${s.riskName}</span> (${s.riskChange.toFixed(2)}%)<br><br>` +
-          `${t.suggestionDefPrefix}<br>` +
+          `${T.suggestionDefPrefix}<br>` +
           `• <span class="suggestion-asset">${s.defName}</span> (${s.defChange.toFixed(2)}%)`;
       }
     }
 
-    // ----- CHART RENDER -----
+    // CHART
     function renderChart(data) {
       const canvas = document.getElementById("marketChart");
       if (!canvas || typeof Chart === "undefined") {
@@ -603,14 +490,13 @@
     }
 
     function renderStatsRow(data) {
-      const t = TEXTS[currentLang];
       const statsRow = document.getElementById("statsRow");
       statsRow.innerHTML = "";
       const arr = [data.dxy, data.es, data.nq, data.gc, data.btc, data.eth];
       arr.forEach((asset) => {
         const pill = document.createElement("div");
         pill.className = "stat-pill";
-        const volBias = asset.vol > asset.volAvg ? t.pillVolHigh : t.pillVolLow;
+        const volBias = asset.vol > asset.volAvg ? T.pillVolHigh : T.pillVolLow;
         pill.textContent = `${asset.name}: ${asset.change.toFixed(2)}% • ${volBias}`;
         statsRow.appendChild(pill);
       });
@@ -649,7 +535,7 @@
       updateSuggestionBox(score);
     }
 
-    // ----- DEMO RANDOMIZER -----
+    // DEMO RANDOMIZER
     function randomizeMarket() {
       function randChange(base, spread) {
         return base + (Math.random() - 0.5) * spread;
@@ -671,26 +557,13 @@
       updateFlowPanel();
 
       document.getElementById("dataSourceBadge").textContent =
-        currentLang === "th"
-          ? "Demo Data • จำลองสภาพตลาด"
-          : "Demo Data • Randomized snapshot";
+        "Demo Data • Randomized snapshot";
     }
 
-    // ----- อัปเดตทุกอย่างตามภาษา -----
-    function updateAll() {
-      applyLanguageStatic();   // หัวข้อ ป้าย ปุ่ม
-      renderChart(marketData); // กราฟ + แท็บด้านล่างกราฟ
-      updateFlowPanel();       // ข้อความในกล่อง Flow + Smart Focus
-    }
-
-    // ----- INIT -----
+    // INIT
     function initDashboard() {
-      updateAll();
-
-      document.getElementById("langToggleBtn").addEventListener("click", () => {
-        currentLang = currentLang === "th" ? "en" : "th";
-        updateAll();
-      });
+      renderChart(marketData);
+      updateFlowPanel();
 
       document.getElementById("randomBtn").addEventListener("click", () => {
         randomizeMarket();
@@ -699,3 +572,5 @@
 
     document.addEventListener("DOMContentLoaded", initDashboard);
   </script>
+</body>
+</html>
