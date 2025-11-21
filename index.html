@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
   <meta charset="UTF-8" />
   <title>Trader Market Flow Radar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <!-- Chart.js -->
+  <!-- Chart.js (ถ้าโดนบล็อก เว็บจะยังรันได้ แค่ไม่มีกราฟแท่ง) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -210,7 +210,7 @@
       <div class="title-block">
         <div class="title" id="titleText">Trader Market Flow Radar</div>
         <div class="subtitle" id="subtitleText">
-          Prototype website สำหรับเทรดเดอร์ — ดูการไหลของเงินระหว่าง DXY, ES, NQ, GC, BTC, ETH
+Prototype website สำหรับเทรดเดอร์ — ดูการไหลของเงินระหว่าง DXY, ES, NQ, GC, BTC, ETH
 เพื่อช่วยประเมินว่า วันนี้ตลาดอยู่โหมด Risk-On หรือ Risk-Off และช่วงไหนควรอยู่นิ่งๆ
         </div>
       </div>
@@ -263,7 +263,7 @@
           <div id="flowDesc" class="flow-desc"></div>
           <ul id="flowList" class="flow-list"></ul>
 
-          <div class="suggestion-box" id="suggestionBox">
+          <div class="suggestion-box">
             <div class="suggestion-title" id="suggestionTitle">Smart Focus (คำแนะนำ DEMO)</div>
             <div id="suggestionText">
               ระบบจะเลือกทรัพย์สินเสี่ยงที่เด่นสุด และทรัพย์สินป้องกันความเสี่ยงที่เด่นสุด จากข้อมูลวันนี้
@@ -274,7 +274,7 @@
           </div>
 
           <div class="actions">
-            <button onclick="randomizeMarket()" id="randomBtn">🎲 Randomize Demo</button>
+            <button id="randomBtn">🎲 Randomize Demo</button>
           </div>
         </section>
       </div>
@@ -286,8 +286,8 @@ Prototype สำหรับการพรีเซนต์ในคลาส 
   </div>
 
   <script>
-    // ---------------- LANGUAGE ----------------
-    let currentLang = "th"; // "th" หรือ "en"
+    // -------- LANGUAGE TEXTS --------
+    let currentLang = "th";
 
     const TEXTS = {
       th: {
@@ -407,14 +407,13 @@ Prototype สำหรับการพรีเซนต์ในคลาส 
       document.getElementById("randomBtn").textContent = t.randomBtn;
       document.getElementById("footerText").textContent = t.footer;
 
-      // ปุ่ม TH / EN active
       const btnTH = document.getElementById("btnTH");
       const btnEN = document.getElementById("btnEN");
       btnTH.classList.toggle("active", currentLang === "th");
       btnEN.classList.toggle("active", currentLang === "en");
     }
 
-    // --------------- DEMO MARKET DATA ---------------
+    // -------- DEMO DATA --------
     let marketData = {
       dxy: { name: "DXY", change: 0.4, vol: 105, volAvg: 100, type: "defensive" },
       es:  { name: "ES",  change: 0.8, vol: 120, volAvg: 100, type: "risk" },
@@ -424,9 +423,9 @@ Prototype สำหรับการพรีเซนต์ในคลาส 
       eth: { name: "ETH", change: 3.1, vol: 160, volAvg: 100, type: "risk" },
     };
 
-    let chartInstance = null;
+    let chartInstance = null; // << ประกาศครั้งเดียวตรงนี้
 
-    // --------------- FLOW SCORE LOGIC ---------------
+    // -------- FLOW SCORE --------
     function computeFlowScore(data) {
       const dxy = data.dxy.change;
       const es  = data.es.change;
@@ -437,10 +436,10 @@ Prototype สำหรับการพรีเซนต์ในคลาส 
 
       let score =
         50 +
-        (es + nq) * 4 +       // หุ้น US
-        (btc + eth) * 2.5 -   // คริปโต
-        dxy * 5 -             // ดอลลาร์แข็ง = risk-off
-        gc * 3;               // ทองขึ้น = risk-off
+        (es + nq) * 4 +
+        (btc + eth) * 2.5 -
+        dxy * 5 -
+        gc * 3;
 
       if (score > 100) score = 100;
       if (score < 0) score = 0;
@@ -503,7 +502,7 @@ Prototype สำหรับการพรีเซนต์ในคลาส 
       return bullets;
     }
 
-    // --------------- SIMPLE RECOMMENDATION ---------------
+    // -------- RECOMMENDATION --------
     function buildSuggestions(data) {
       const assets = Object.values(data);
       const riskAssets = assets.filter(a => a.type === "risk");
@@ -533,7 +532,7 @@ Prototype สำหรับการพรีเซนต์ในคลาส 
       const s = buildSuggestions(marketData);
       const box = document.getElementById("suggestionText");
 
-      const nearNeutral = Math.abs(score - 50) <= 10; // ช่วงควรอยู่นิ่งๆ
+      const nearNeutral = Math.abs(score - 50) <= 10;
 
       if (nearNeutral) {
         box.innerHTML =
@@ -549,11 +548,30 @@ Prototype สำหรับการพรีเซนต์ในคลาส 
       }
     }
 
-    // --------------- CHART ---------------
-    let chartInstance = null;
-
+    // -------- CHART --------
     function renderChart(data) {
-      const ctx = document.getElementById("marketChart").getContext("2d");
+      const t = TEXTS[currentLang];
+      const canvas = document.getElementById("marketChart");
+
+      // ถ้า Chart.js หรือ canvas ใช้ไม่ได้ → ข้าม ไม่ให้เว็บพัง
+      if (!canvas || typeof Chart === "undefined") {
+        console.log("Chart.js not available, skip chart.");
+        const statsRow = document.getElementById("statsRow");
+        statsRow.innerHTML = "";
+        const arr = [data.dxy, data.es, data.nq, data.gc, data.btc, data.eth];
+        arr.forEach((asset) => {
+          const pill = document.createElement("div");
+          pill.className = "stat-pill";
+          const volBias = asset.vol > asset.volAvg ? t.pillVolHigh : t.pillVolLow;
+          pill.textContent = `${asset.name}: ${asset.change.toFixed(2)}% • ${volBias}`;
+          statsRow.appendChild(pill);
+        });
+        return;
+      }
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
       const labels = ["DXY", "ES", "NQ", "GC", "BTC", "ETH"];
       const changes = [
         data.dxy.change,
@@ -608,7 +626,6 @@ Prototype สำหรับการพรีเซนต์ในคลาส 
         },
       });
 
-      const t = TEXTS[currentLang];
       const statsRow = document.getElementById("statsRow");
       statsRow.innerHTML = "";
       const arr = [data.dxy, data.es, data.nq, data.gc, data.btc, data.eth];
@@ -654,7 +671,7 @@ Prototype สำหรับการพรีเซนต์ในคลาส 
       updateSuggestionBox(score);
     }
 
-    // --------------- DEMO RANDOMIZER ---------------
+    // -------- RANDOMIZE DEMO --------
     function randomizeMarket() {
       function randChange(base, spread) {
         return base + (Math.random() - 0.5) * spread;
@@ -680,7 +697,7 @@ Prototype สำหรับการพรีเซนต์ในคลาส 
           : "Demo Data • Randomized snapshot";
     }
 
-    // --------------- INIT ---------------
+    // -------- INIT --------
     function initDashboard() {
       applyLanguageStatic();
       renderChart(marketData);
@@ -698,6 +715,10 @@ Prototype สำหรับการพรีเซนต์ในคลาส 
         applyLanguageStatic();
         renderChart(marketData);
         updateFlowPanel();
+      });
+
+      document.getElementById("randomBtn").addEventListener("click", () => {
+        randomizeMarket();
       });
     }
 
