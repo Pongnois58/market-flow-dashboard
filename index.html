@@ -385,6 +385,8 @@
 
     function applyLanguageStatic() {
       const t = TEXTS[currentLang];
+      document.documentElement.lang = currentLang === "th" ? "th" : "en";
+
       document.getElementById("titleText").textContent = t.title;
       document.getElementById("subtitleText").textContent = t.subtitle;
       document.getElementById("langLabel").textContent = t.langLabel;
@@ -422,10 +424,10 @@
 
       let score =
         50 +
-        (es + nq) * 4 +       // หุ้น US
-        (btc + eth) * 2.5 -   // คริปโต
-        dxy * 5 -             // ดอลลาร์แข็ง = risk-off
-        gc * 3;               // ทองขึ้น = risk-off
+        (es + nq) * 4 +
+        (btc + eth) * 2.5 -
+        dxy * 5 -
+        gc * 3;
 
       if (score > 100) score = 100;
       if (score < 0) score = 0;
@@ -493,7 +495,6 @@
       const assets = Object.values(data);
       const riskAssets = assets.filter(a => a.type === "risk");
       const defensiveAssets = assets.filter(a => a.type === "defensive");
-
       const calcMomentum = a => a.change * (a.vol / a.volAvg);
 
       let bestRisk = riskAssets[0];
@@ -502,7 +503,6 @@
       riskAssets.forEach(a => {
         if (calcMomentum(a) > calcMomentum(bestRisk)) bestRisk = a;
       });
-
       defensiveAssets.forEach(a => {
         if (calcMomentum(a) > calcMomentum(bestDef)) bestDef = a;
       });
@@ -520,7 +520,7 @@
       const s = buildSuggestions(marketData);
       const box = document.getElementById("suggestionText");
 
-      const nearNeutral = Math.abs(score - 50) <= 10; // โหมดควรอยู่นิ่งๆ
+      const nearNeutral = Math.abs(score - 50) <= 10;
 
       if (nearNeutral) {
         box.innerHTML =
@@ -538,7 +538,13 @@
 
     // ----- CHART RENDER -----
     function renderChart(data) {
-      const ctx = document.getElementById("marketChart").getContext("2d");
+      const canvas = document.getElementById("marketChart");
+      if (!canvas || typeof Chart === "undefined") {
+        console.log("Chart.js not available, skip chart.");
+        renderStatsRow(data);
+        return;
+      }
+      const ctx = canvas.getContext("2d");
       const labels = ["DXY", "ES", "NQ", "GC", "BTC", "ETH"];
       const changes = [
         data.dxy.change,
@@ -593,7 +599,10 @@
         },
       });
 
-      // Stats pills
+      renderStatsRow(data);
+    }
+
+    function renderStatsRow(data) {
       const t = TEXTS[currentLang];
       const statsRow = document.getElementById("statsRow");
       statsRow.innerHTML = "";
@@ -678,9 +687,11 @@
         renderChart(marketData);
         updateFlowPanel();
       });
+
+      document.getElementById("randomBtn").addEventListener("click", () => {
+        randomizeMarket();
+      });
     }
 
     document.addEventListener("DOMContentLoaded", initDashboard);
   </script>
-</body>
-</html>
